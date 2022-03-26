@@ -12,3 +12,16 @@ export const getCountdown = ({cutOffDate}) => {
     totalMilliseconds: difference
   };
 }
+
+// OLD
+const fetchData = (url) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const data = await axios.get(url);
+      resolve(JSON.stringify(data));
+    } catch (error) {
+      if (axios.isCancel(error)) return;
+      reject(error);
+    }
+  });
+}
