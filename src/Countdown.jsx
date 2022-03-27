@@ -2,23 +2,30 @@ import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import moment from 'moment';
 
+const formatPlural = (str, n) => n > 1 ? `${str}s` : str;
+
+const formatCountdown = (t) => {
+  const hours = t.hours ? `${t.hours} ${formatPlural('hour', t.hours)}` : '';
+  return `Order within ${hours} ${t.mins} minutes`;
+}
+
 const countdownDate = ({cutOffDate}) => {
   const difference = moment(cutOffDate).diff(moment(), 'millseconds');
   const duration = moment.duration(difference);
   return {
-    days: duration.days(),
     hours: duration.hours(),
-    minutes: duration.minutes(),
-    seconds: duration.seconds(),
+    mins: duration.minutes(),
+    secs: duration.seconds(),
     total: difference
   };
 }
 
-const Countdown = () => {
+const Countdown = ({cutOffDate}) => {
   const timerRef = useRef(null);
-  const cutOffDate = '2022-03-26T17:01:00';
   const initialCountdown = countdownDate({ cutOffDate });
   const [timer, setTimer] = useState(initialCountdown);
+  const [response, setResponse] = useState(null);
+  const url = 'https://jsonplaceholder.typicode.com/albums/1';
   
   useEffect(() => {
     if (timer.total > 0) {
@@ -31,13 +38,10 @@ const Countdown = () => {
     }
     return () => clearInterval(timerRef.current);
   }, [JSON.stringify(timer)]);
-
-  const [response, setResponse] = useState({});
-  const url = 'https://reqres.in/api/unknown/1';
   
   useEffect(async () => {
+    const source = axios.CancelToken.source();
     if (timer.total < 1) {
-      const source = axios.CancelToken.source();
       try {
         const options = { cancelToken: source.token };
         const { data } = await axios.get(url, options);
@@ -51,11 +55,17 @@ const Countdown = () => {
   }, [JSON.stringify(timer)]);
 
   return (
-    <section>
+    <main className="container">
       {timer.total > 0 ? 
-        <p>{JSON.stringify(timer)}</p> : 
-        <p>{JSON.stringify(response)}</p>}
-    </section>
+        (<section>
+          <p>{timer ? formatCountdown(timer) : null}</p>
+          <p>{timer ? JSON.stringify(timer) : null}</p>
+        </section>) : 
+        (<section>
+          <h3>API response</h3>
+          <p>{response ? JSON.stringify(response) : null}</p>
+        </section>)}
+    </main>
   );
 }
 
