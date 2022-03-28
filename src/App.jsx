@@ -4,7 +4,7 @@ import Countdown from './Countdown';
 function App() {
   return (
     <article>
-      <h1>Countdown to cut-off time</h1>
+      <h1>Countdown to cut-off date</h1>
       <Countdown />
     </article>
   );

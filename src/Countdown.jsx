@@ -2,11 +2,17 @@ import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import moment from 'moment';
 
-const formatPlural = (str, n) => n > 1 ? `${str}s` : str;
+const formatString = (n, str) => {
+  const pluralStr = n > 1 ? `${str}s` : str;
+  return n > 0 ? `${n} ${pluralStr}` : '';
+}
 
-const formatCountdown = (t) => {
-  const hours = t.hours > 0 ? `${t.hours} ${formatPlural('hour', t.hours)}` : '';
-  return `If ordered within ${hours} ${t.mins} minutes`;
+const formatCountdown = (timer) => {
+  const { hours, mins, secs } = timer;
+  const h = formatString(hours, 'hour');
+  const m = formatString(mins, 'minute');
+  const s = formatString(secs, 'second');
+  return `If ordered within ${h} ${m} ${s}`;
 }
 
 const countdownDate = ({ cutOffDate }) => {
@@ -32,6 +38,7 @@ const Countdown = () => {
     if (timer && timer.total > 0) {
       timerRef.current = setTimeout(() => {
         const countDown = countdownDate({ cutOffDate: timer.cutOffDate });
+        console.log('countDown finished > timer.total', timer.total)
         setTimer(countDown);
       }, 1000);
     } else {
@@ -46,8 +53,9 @@ const Countdown = () => {
       try {
         const options = { cancelToken: source.token };
         const { data } = await axios.get(url, options);
-        const initialCountdown = countdownDate({ cutOffDate: data.time });
-        setTimer(initialCountdown);
+        const countdown = countdownDate({ cutOffDate: data.time });
+        setTimer(countdown);
+        console.log('countDown api call > timer.total', timer.total)
         init.current = true;
       } catch (error) {
         if (axios.isCancel(error)) return;
@@ -61,8 +69,8 @@ const Countdown = () => {
       {init.current &&
         (<section>
           <p>FREE Delivery, Next day</p>
-          <p>{timer.total > 0 ? formatCountdown(timer) : null}</p>
-          <p>{timer.total > 0 ? JSON.stringify(timer) : null}</p>
+          <p>{timer.total > 0 ? formatCountdown(timer) : 'Loading...'}</p>
+          <p>{timer.total > 0 ? JSON.stringify(timer) : '{}'}</p>
         </section>)}
     </main>
   );
